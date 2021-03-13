@@ -1,0 +1,156 @@
+/**
+ * EXAMEN PARCIAL 1 EQUIPO 8
+ * Eliminar todos los signos de puntuación, números y convertir a minúsculas.
+ * Eliminación de palabras cerradas/vacías.
+ * Lleva a cabo el truncamiento o segmentación, obteniendo las raíces de las palabras.
+ * System.out.println();
+ */
+
+import java.io.*;
+import java.util.*;
+
+public class Examen {
+	
+	FileReader fr = null;
+    BufferedReader br = null;
+    
+    public Examen() {
+    }
+    
+    public void dameTexto(String nombreArchivo){
+    	ArrayList <String> cerradas = new ArrayList <String> ();
+    	cerradas = leer(cerradas);
+    	// Unicode Character \u201C “ | \u201D ” | U+2019 ’
+    	String signosDePunt = "_/$%^&*()+=`~><;:,-.!?[]'«»ð1234567890\"\"\u201C\u201D\u2019";
+    	String procesada = "";
+    	String linea = "";
+		File archivo = null;
+		archivo = new File (nombreArchivo);
+
+			try {
+				if(!archivo.exists())
+					throw new FileNotFoundException(":(");
+				}catch(FileNotFoundException e){
+					System.out.println("El archivo "+nombreArchivo+" no existe :(");
+					}
+
+		File archivoEscribe = null;
+		archivoEscribe = new File ("C:\\Users\\Leo\\Documents\\000BELTRANrecu\\Examen\\Pro\\Resultado.txt");
+  		try {
+         	fr = new FileReader (archivo);
+         	br = new BufferedReader(fr);
+         	
+         	FileWriter w = new FileWriter(archivoEscribe,false);
+         	BufferedWriter bw = new BufferedWriter(w);
+         	PrintWriter wr = new PrintWriter(bw);
+         
+         	while((linea=br.readLine()) != null){ //LLega hasta el final del archivo
+         		procesada = preProcesar(linea,signosDePunt,cerradas);
+         		wr.append(procesada+'\n');
+         		}
+         		
+         	wr.close();
+         	bw.close();	
+  			}catch(Exception e){
+         	e.printStackTrace();
+      	}
+    	} //Aqui leo el archivo
+    
+    public String preProcesar(String texto, String signos, ArrayList<String> listaCerradas){ 
+    	String CadenaPreprocesada = "";
+    	String palabra = "";
+    	int TAM = texto.length();
+    	char c,b;
+    	
+    	for(int i=0;i<TAM;i++){
+    		c = texto.charAt(i);
+    		
+    		if(c != 32 && i<TAM-1){
+    			palabra = palabra + c;
+    			}else{
+    			   if(palabra.length() > 0){
+    			   	if(i == TAM-1)
+    			   		palabra = palabra + c;
+
+    				if(esCerrada(palabra, listaCerradas)){
+    					palabra = "";
+    					}else{
+    						palabra = quitaPuntuacion(palabra,signos);
+    						}	
+    				CadenaPreprocesada = CadenaPreprocesada + palabra + ' ';
+    				palabra = "";
+    					}
+    				}
+    		}
+    	return CadenaPreprocesada;
+    	} //Se lee una línea entera
+    
+    public String quitaPuntuacion(String palabra, String signos){
+    	String palabraLimpia = "";
+    	int i,j,mayus,TAM = palabra.length();
+    	boolean esSigno = false;
+    	char c,b;
+    	
+    	for(i=0;i<TAM;i++){
+    		c = palabra.charAt(i); //comparar todos los caracteres con todos los símbolos
+    		for(j=0;j<signos.length();j++){
+    			if(c == signos.charAt(j)){
+    				esSigno = true;
+    				j = signos.length();
+    				}	
+    			}
+    			
+    		if(esSigno == false){//Se examinaron todos los signos, entonces no es un signo
+    			if(c > 64 && c < 91){ //Convertir a minúsculas.
+    				mayus = c + 32;
+    				c = (char)mayus;
+    				}	
+    			}else{			//Si es un signo se sustituye por un espacio
+    				c = ' ';    //!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+    				esSigno = false;
+    				}
+    				
+    			palabraLimpia = palabraLimpia + c; //Se agrega el caracter a la palabra final
+    			 
+    		}
+    		return palabraLimpia;
+    	}
+    
+    public boolean  esCerrada(String palabra, ArrayList<String> listaCerradas){
+    	palabra = palabra.toLowerCase(); //Todas las palabras en la lista de palabras cerradas son minusculas
+    	if(listaCerradas.contains(palabra)) //Si la palabra que encontramos en el texto se encuentra en la lista de cerradas regresa true
+    		return true;
+    	return false;
+    	}
+ 
+ 	public ArrayList <String> leer(ArrayList<String> listaCerradas){
+ 		String linea = "";
+		File archivo = null;
+		archivo = new File ("C:\\Users\\Leo\\Documents\\000BELTRANrecu\\Examen\\Pro\\Stop_Words.txt");
+		
+  		try {
+         	fr = new FileReader (archivo);
+         	br = new BufferedReader(fr);
+         
+         	while((linea=br.readLine()) != null)
+         		listaCerradas.add(linea);
+  			}catch(Exception e){
+         	e.printStackTrace();
+      	}
+      	return listaCerradas;
+ 		} //Lee un archivo con las palabras cerradas y lo pone en un Array
+    
+    
+    	
+    public static void main (String[] argv) {
+    	String archivo = "", direccion= "C:\\Users\\Leo\\Documents\\000BELTRANrecu\\Examen\\";
+    	Scanner teclado = new Scanner(System.in);
+    	Examen parcialUno = new Examen();
+    	System.out.println("Hola, por favor ingrese el nombre del archivo");
+    	archivo = teclado.nextLine();
+    	direccion = direccion+archivo+".txt";
+		parcialUno.dameTexto(direccion);
+		System.out.println("REVISAR!!!");
+    	}
+    
+}
