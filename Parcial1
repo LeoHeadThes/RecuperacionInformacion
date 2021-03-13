@@ -11,8 +11,8 @@ import java.util.*;
 
 public class Examen {
 	
-	FileReader fr = null;
-    BufferedReader br = null;
+	//FileReader fr = null;
+    //BufferedReader br = null;
     
     public Examen() {
     }
@@ -21,7 +21,7 @@ public class Examen {
     	ArrayList <String> cerradas = new ArrayList <String> ();
     	cerradas = leer(cerradas);
     	// Unicode Character \u201C “ | \u201D ” | U+2019 ’
-    	String signosDePunt = "_/$%^&*()+=`~><;:,-.!?[]'«»ð1234567890\"\"\u201C\u201D\u2019";
+    	String signosDePunt = "?!#_/$%^&*()+=`~><;:,-.[]’´'“”«»ð1234567890â€œ™\"\"\u201C\u201D\u2019\003F";
     	String procesada = "";
     	String linea = "";
 		File archivo = null;
@@ -37,10 +37,12 @@ public class Examen {
 		File archivoEscribe = null;
 		archivoEscribe = new File ("C:\\Users\\Leo\\Documents\\000BELTRANrecu\\Examen\\Pro\\Resultado.txt");
   		try {
-         	fr = new FileReader (archivo);
-         	br = new BufferedReader(fr);
+         	FileReader fr = new FileReader (archivo);
+         	FileInputStream fis = new FileInputStream(archivo);
+			InputStreamReader isr = new InputStreamReader(fis, "UTF-8"); //Leer caracteres Unicode
+			BufferedReader br = new BufferedReader(isr);
          	
-         	FileWriter w = new FileWriter(archivoEscribe,false);
+         	FileWriter w = new FileWriter(archivoEscribe,false); //Borrar o no el nuevo archivo
          	BufferedWriter bw = new BufferedWriter(w);
          	PrintWriter wr = new PrintWriter(bw);
          
@@ -106,11 +108,14 @@ public class Examen {
     				c = (char)mayus;
     				}	
     			}else{			//Si es un signo se sustituye por un espacio
-    				c = ' ';    //!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+    				c = '$';    //!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     				esSigno = false;
     				}
-    				
+    			
+    			if(c != '$')	
     			palabraLimpia = palabraLimpia + c; //Se agrega el caracter a la palabra final
+    			
+    			c= ' ';
     			 
     		}
     		return palabraLimpia;
@@ -129,8 +134,8 @@ public class Examen {
 		archivo = new File ("C:\\Users\\Leo\\Documents\\000BELTRANrecu\\Examen\\Pro\\Stop_Words.txt");
 		
   		try {
-         	fr = new FileReader (archivo);
-         	br = new BufferedReader(fr);
+         	FileReader fr = new FileReader (archivo);
+         	BufferedReader br = new BufferedReader(fr);
          
          	while((linea=br.readLine()) != null)
          		listaCerradas.add(linea);
