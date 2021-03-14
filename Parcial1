@@ -21,7 +21,7 @@ public class Examen {
     	ArrayList <String> cerradas = new ArrayList <String> ();
     	cerradas = leer(cerradas);
     	// Unicode Character \u201C “ | \u201D ” | U+2019 ’
-    	String signosDePunt = "?!#_/$%^&*()+=`~><;:,-.[]’´'“”«»ð1234567890â€œ™\"\"\u201C\u201D\u2019\003F";
+    	String signosDePunt = "?!#_/$%^&*()+=`~><;:,–-.[]…’´'“”«»ð1234567890â€œ™\"\"\u201C\u201D\u2019\003F";
     	String procesada = "";
     	String linea = "";
 		File archivo = null;
@@ -42,7 +42,7 @@ public class Examen {
 			InputStreamReader isr = new InputStreamReader(fis, "UTF-8"); //Leer caracteres Unicode
 			BufferedReader br = new BufferedReader(isr);
          	
-         	FileWriter w = new FileWriter(archivoEscribe,false); //Borrar o no el nuevo archivo
+         	FileWriter w = new FileWriter(archivoEscribe,true); //Borrar o no el nuevo archivo
          	BufferedWriter bw = new BufferedWriter(w);
          	PrintWriter wr = new PrintWriter(bw);
          
