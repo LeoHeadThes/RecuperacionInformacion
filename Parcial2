@@ -1,0 +1,330 @@
+/**
+ * 1.Análisis léxico, eliminando todos los signos de puntuación, números y convirtiendo a minúsculas.
+ * 2.Eliminación de palabras cerradas/vacías.
+ * 3.Obtener tf/idf.
+ * 4.Obtener la representación de los documentos con tf/idf.
+ * 5.Obtener 5 consultas y representarlas con tf/idf (revisar las noticias que se proporcionan).
+ * TF-> Frecuencia de términos (cuantas veces aparece una palabra en que documento)
+ * IDF Frecuencia Inversa de términos (1+log2[el resultado de TF])
+ * MOSTRAR LA LONGITUD DEL VOCABULARIO
+ * System.out.println();
+ * @version 1.00 22/04/2021
+ */
+
+import java.io.*;
+import java.util.*;
+
+public class Examen2 {
+	
+	FileReader fr = null;
+    BufferedReader br = null;
+    
+	FileReader fr2 = null;
+    BufferedReader br2 = null;
+    
+    public Examen2() {
+    }
+ 
+    public void dameTexto(String nombreArchivo){
+    	String frecuencias = "C:\\Users\\Leo\\Documents\\000BELTRANrecu\\Examen2\\NoticiasTF.txt";
+    	String freInversas = "C:\\Users\\Leo\\Documents\\000BELTRANrecu\\Examen2\\NoticiasIDF.txt";
+    	String guardarRes = "C:\\Users\\Leo\\Documents\\000BELTRANrecu\\Examen2\\Resultados.txt";
+    	ArrayList<String> terminos = new ArrayList<String>();
+    	ArrayList<String> unDocumento = new ArrayList<String>();
+    	ArrayList<Integer> resultados;
+    	Scanner teclado = new Scanner(System.in);
+    	String consulta="", linea="";
+		File archivo = null;
+		archivo = new File (nombreArchivo);
+		int filas=0,columnas=0,i,j,inv; //fila es documento, columna es palabra
+		
+  		try {
+         	fr = new FileReader (archivo);
+         	br = new BufferedReader(fr);
+         	
+         	fr2 = new FileReader (archivo);
+         	br2 = new BufferedReader(fr2);
+         
+         	while((linea=br.readLine()) != null){ 
+         		terminos = listaTerminos(linea,terminos);
+         		filas++;
+         		}
+         	columnas = terminos.size();
+         	
+         	int [][] tf = new int[filas][columnas];
+         	double  [][] idf = new double[filas][columnas];
+         	
+         	for(i=0;i<filas;i++){ //Llenar la matriz de ceros
+         		for(j=0;j<columnas;j++)
+         			tf[i][j] = 0;
+         		}
+         		
+         	filas=0;
+         	
+         	while((linea=br2.readLine()) != null){ //CALCULAR TF
+         		unDocumento=creaArray(linea);
+         		obtenFrec(unDocumento,tf,filas,terminos);
+         		filas++;
+         		}
+         		
+         	for(i=0;i<filas;i++){ //CALCULAR IDF
+         		for(j=0;j<columnas;j++){
+         			inv =tf[i][j]; 
+         			if(inv>0){
+         				idf[i][j]=inverso(inv);
+         				}else{
+         					idf[i][j]=0;
+         					}
+         			}
+         		}
+         	
+         	escribeTF(terminos,tf,filas,frecuencias);
+         	escribeIDF(terminos,idf,filas,freInversas);
+         	
+         	
+         	//El final
+         	System.out.println("Hola, por favor escriba su consulta con cada palabra separada por espacios");
+         	consulta = teclado.nextLine();
+         	resultados = consultar(consulta,tf,terminos,filas,columnas);
+         	creaResultados(resultados,guardarRes,idf,tf,terminos,nombreArchivo);
+         	 
+         	System.out.println("Tamaño del vocabulario: "+terminos.size());
+         	for(i=0;i<5;i++)System.out.println(".");
+         	System.out.println("¡Checar archivos!");
+         	
+  			}catch(Exception e){
+         	e.printStackTrace();
+      	}
+    	} //Aqui leo el archivo
+    
+    public ArrayList<String> listaTerminos(String lineaDocumento, ArrayList terminos){
+    	ArrayList<String> documentoLeido = creaArray(lineaDocumento);
+    	int i,TAM=documentoLeido.size();
+    	String palabra = "";
+    	boolean yaLeido;
+    	
+    	for(i=0;i<TAM;i++){
+    		palabra=documentoLeido.get(i);
+    		yaLeido=terminos.contains(palabra);
+    		if(yaLeido==false)
+    			terminos.add(palabra);
+    		}
+    	return terminos;
+    	}
+    
+    public void obtenFrec(ArrayList<String>documento, int [][] pesos, int filaDocu, ArrayList<String> columnas){
+    	int i,posColumna,TAM=documento.size();
+    	String palabra = "";
+    	char c;
+    	
+    	for(i=0;i<TAM;i++){
+    		palabra=documento.get(i);
+    		if(columnas.contains(palabra)){
+    			posColumna=columnas.indexOf(palabra);
+    			pesos[filaDocu][posColumna]++;
+    			}
+    		}
+    	} //Checar que palabra se encuentra en que documento
+    
+    public ArrayList<String> creaArray(String cadena){
+    	ArrayList<String> auxArray = new ArrayList<String>();
+    	String palabra = "";
+    	char c;
+    	int i,TAM = cadena.length();
+    	
+    	for(i=0;i<TAM;i++){
+    		c = cadena.charAt(i);
+    		if(c!=' ' && i!=TAM-1){ //Si no es un espacio y no es la ultima letra de la línea
+    			palabra = palabra+c;
+    			}else if(palabra.length()>0){
+    				if(i==TAM-1)palabra = palabra+c;	
+    				auxArray.add(palabra);
+    				palabra = "";
+    				}
+    		}
+    	
+    	return auxArray;
+    	} //Lee una cadena y la pone en un array
+    
+    public double inverso(int fij){
+    	return (1 + Math.log(fij) / Math.log(2));
+    	}
+    
+    public void escribeTF(ArrayList terminos, int tf[][],int filas,String destino){
+    	//Filas es el número total de documentos
+    	File archivoEscribe = null;
+		archivoEscribe = new File (destino);
+		int TAM = terminos.size();
+		String renglon = "Termino"+"\t";
+		int i,j;
+		
+  		try {
+         	FileWriter w = new FileWriter(archivoEscribe);
+         	BufferedWriter bw = new BufferedWriter(w);
+         	PrintWriter wr = new PrintWriter(bw);
+         	
+         	for(j=0;j<filas;j++){
+         		renglon = renglon+"Doc"+j+"\t";
+         		}
+         	wr.append(renglon);
+         	renglon="";
+         	
+         	for(i=0;i<TAM;i++){
+         		renglon = terminos.get(i)+"\t";
+         		for(j=0;j<filas;j++){
+         			renglon = renglon+tf[j][i]+"\t";
+         			}
+         		wr.append(renglon);
+         		renglon="";
+         		}
+         		
+         	wr.close();
+         	bw.close();	
+  			}catch(Exception e){
+         	e.printStackTrace();
+      	}
+		
+    	}
+    
+    public void escribeIDF(ArrayList terminos, double idf[][],int filas,String destino){
+    	//Filas es el número total de documentos
+    	File archivoEscribe = null;
+		archivoEscribe = new File (destino);
+		int TAM = terminos.size();
+		String renglon = "Termino"+"\t";
+		int i,j;
+		
+  		try {
+         	FileWriter w = new FileWriter(archivoEscribe);
+         	BufferedWriter bw = new BufferedWriter(w);
+         	PrintWriter wr = new PrintWriter(bw);
+         	
+         	for(j=0;j<filas;j++){
+         		renglon = renglon+"Doc"+j+"\t";
+         		}
+         	wr.append(renglon);
+         	renglon="";
+         	
+         	for(i=0;i<TAM;i++){
+         		renglon = terminos.get(i)+"\t";
+         		for(j=0;j<filas;j++){
+         			renglon = renglon+idf[j][i]+"\t";
+         			}
+         		wr.append(renglon);
+         		renglon="";
+         		}
+         		
+         	wr.close();
+         	bw.close();	
+  			}catch(Exception e){
+         	e.printStackTrace();
+      	}
+		
+    	}
+    
+    public ArrayList<Integer> consultar(String lineaConsulta, int [][] matrizBool, ArrayList<String> aquiEstan, int filas, int columnas){
+    	ArrayList<String> consulta = creaArray(lineaConsulta);
+    	ArrayList<Integer> resultados = new ArrayList<Integer>();
+    	int i,j,posDocu,posColum,lonConsul = consulta.size();
+    	String aux = "";
+    		
+    	for(i=0;i<lonConsul;i++){ // compara la busqueda con la matriz
+    		aux = consulta.get(i);
+    		if(aquiEstan.contains(aux)){
+    			posColum = aquiEstan.indexOf(aux);
+    			for(posDocu=0;posDocu<filas;posDocu++){
+    				if(matrizBool[posDocu][posColum] == 1){
+    					resultados.add(posDocu);
+    					matrizBool[posDocu][posColum] = 0;
+    					}
+    				}
+    			}
+    			
+    		}
+    	
+    	return resultados;
+    	}
+    
+    public void creaResultados(ArrayList<Integer> resultados, String destino, double [][] idfPesos, int [][] tfPesos, ArrayList vocabulario, String nombreArchivo){
+    	ArrayList<Integer> listaFinal = new ArrayList<Integer>();
+    	Set<Integer> set = new LinkedHashSet<>(); //Una lista en donde los elementos no se repiten
+    	set.addAll(resultados);
+    	listaFinal.addAll(set);
+    	Collections.sort(listaFinal);
+    	
+    	File archivoEscribe = null;
+		archivoEscribe = new File (destino);
+		int TAM = vocabulario.size();
+		String renglon = "";
+		int i,j, noDocu;
+		
+  		try {
+         	FileWriter w = new FileWriter(archivoEscribe); //TRUE, FALSE
+         	BufferedWriter bw = new BufferedWriter(w);
+         	PrintWriter wr = new PrintWriter(bw);
+         	
+         	
+    	for(i=0;i<listaFinal.size();i++){
+    		noDocu = listaFinal.get(i);
+    		wr.append("NOTICIA "+noDocu+":\n"+muestraDocumento(nombreArchivo,noDocu)+"\n");
+    		//Obtener los valores de tf e idf de cada termino en el documento
+    		wr.append("Valores de TF:\n");
+    		for(j=0;j<vocabulario.size();j++){
+    			if(tfPesos[noDocu][j] != 0){
+    				wr.append(vocabulario.get(j)+" "+tfPesos[noDocu][j]+"\n");
+    				}
+    			}
+    		wr.append("Valores de IDF:\n");
+    		for(j=0;j<vocabulario.size();j++){
+    			if(idfPesos[noDocu][j] != 0){
+    				wr.append(vocabulario.get(j)+" "+idfPesos[noDocu][j]+"\n");
+    				}
+    			}
+    		}
+         	
+         		
+         	wr.close();
+         	bw.close();	
+  			}catch(Exception e){
+         	e.printStackTrace();
+      	}
+		
+    	}
+    
+    public String muestraDocumento(String nombreArchivo, int noDocumento){
+    	FileReader rf = null;
+    	BufferedReader rb = null;
+    	int salto = 0;
+    	String linea="";
+		File archivo = null;
+		archivo = new File (nombreArchivo);
+  		try {
+         	rf = new FileReader (archivo);
+         	rb = new BufferedReader(rf);
+         
+         		
+         		for(salto=0;salto<=noDocumento;salto++)
+         			linea = rb.readLine();
+
+         	
+  			}catch(Exception e){
+         	e.printStackTrace();
+      	}
+      	return linea;
+    	} //Retorna un documento usando su indice
+    
+    public void printerNoJutsu(int documentos, int palabras, int [][] matrix){
+         	for(int i=0;i<documentos;i++){
+         		System.out.println();
+         		for(int j=0;j<palabras;j++)
+         			System.out.print(" "+matrix[i][j]+" ");
+         		}
+    	}
+    
+    public static void main (String[] argv) {
+    	String direccion= "C:\\Users\\Leo\\Documents\\000BELTRANrecu\\Examen2\\Noticias2P_L.txt";
+    	Examen2 parcialDos = new Examen2();	
+		parcialDos.dameTexto(direccion);
+    	}
+    
+}
